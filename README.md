@@ -23,6 +23,9 @@ These settings do not change the app. The packager preserves its bundle ID, disp
 
 ## Build
 
+Packaging prints progress every ten seconds, including elapsed time and temporary IPA size. Simultaneous packaging jobs for the same project are rejected. Wait for the ready-to-sign message before deploying. Large IPAs can take several minutes to write and verify.
+
+
 Keep Theos, its Linux iOS toolchain and the selected SDK inside Linux. Set `THEOS`, or use `$HOME/theos`. Install Python 3.11+ in the build environment. Project and toolchain paths must not contain spaces.
 
 Windows uses whichever distribution and user plain `wsl` selects:
