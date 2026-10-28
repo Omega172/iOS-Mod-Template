@@ -20,6 +20,8 @@ On Windows, run `Build.bat`. On Linux, run `bash ./Build.sh`. Output: `Build/Rel
 
 ### Package a provided IPA
 
+Unchanged files keep their original ZIP compression, avoiding recompression. CRC and retained-file integrity checks still run before publishing the output.
+
 On Windows:
 
 ```powershell
