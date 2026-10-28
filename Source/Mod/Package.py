@@ -16,7 +16,7 @@ def customize(zInput, strApp, stInfo, pRoot):
     if not byLogo.startswith(bytes.fromhex("89504e470d0a1a0a")):
         raise ValueError("Expected PNG logo")
     stDetails = {
-        "branding": "Mod by Omega172, once per app launch",
+        "branding": "Mod by Omega172",
         "logo_sha256": hashlib.sha256(byLogo).hexdigest(),
     }
     return {}, {strApp + "/Omega172.png": (byLogo, 0o100644)}, stDetails

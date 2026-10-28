@@ -1,73 +1,48 @@
 # iOS Mod Template
 
-An arm64 iOS dylib starter using Theos, Linux or Windows through WSL. Add your mod code to `Source/Mod/Mod.mm`.
+An arm64 iOS dylib starter using Theos, with builds on Linux or Windows through WSL.
 
-## Configure
+## Features
 
-Edit `Project.json`:
+- Empty mod entry point in `Source/Mod/Mod.mm`.
+- Omega172 credits popup, shown once per app launch.
+- Decrypted IPA packaging that preserves app identity and verifies retained files.
 
-```json
-{
-  "ProjectName": "MyMod",
-  "SdkVersion": "16.5",
-  "MinimumIOSVersion": "15.0",
-  "CxxStandard": "c++2b"
-}
-```
-
-`ProjectName` controls the dylib target, install name, IPA filename and release asset names. Use letters, numbers or underscores, starting with a letter. No folders or scripts need renaming.
-
-The other settings select the installed iOS SDK, minimum deployment target and compiler dialect. `c++2b` enables the C++23 dialect supported by the existing toolchain. Use a newer supported dialect when upgrading your compiler.
-
-These settings do not change the app. The packager preserves its bundle ID, display name, version and `Info.plist` bytes. Mod code and signing choices are separate from the project name.
+Add hooks and patches for your target app. No gameplay changes are included.
 
 ## Build
 
-Packaging prints progress every ten seconds, including elapsed time and temporary IPA size. Simultaneous packaging jobs for the same project are rejected. Wait for the ready-to-sign message before deploying. Large IPAs can take several minutes to write and verify.
+Edit `Project.json` to set the project name, SDK, minimum iOS target and C++ dialect. `ProjectName` controls output filenames.
 
+Install Theos, its iOS compiler and the selected SDK in Linux, along with Python 3.11+. Set `THEOS` or use `$HOME/theos`. Project and toolchain paths must not contain spaces.
 
-Keep Theos, its Linux iOS toolchain and the selected SDK inside Linux. Set `THEOS`, or use `$HOME/theos`. Install Python 3.11+ in the build environment. Project and toolchain paths must not contain spaces.
+On Windows, run `Build.bat`. On Linux, run `bash ./Build.sh`. Output: `Build/Release/<ProjectName>.dylib`.
 
-Windows uses whichever distribution and user plain `wsl` selects:
+### Package a provided IPA
+
+On Windows:
 
 ```powershell
-.\Build.bat
 .\Package.bat "C:/Path/Original-Decrypted.ipa"
 ```
 
-Linux:
+On Linux:
 
 ```bash
-bash ./Build.sh
 bash ./Package.sh "/path/Original-Decrypted.ipa"
 ```
 
-You can pass a direct HTTPS IPA URL instead of a file path. Omit the argument when exactly one IPA is in the project root.
+A direct HTTPS IPA URL also works. Omit the argument when exactly one IPA is in the project root.
 
-Outputs are `Build/Release/<ProjectName>.dylib` and `Build/Release/<ProjectName>-NeedsSigning.ipa`. Successful packaging replaces the previous IPA. The source IPA is unchanged.
+Packaging prints progress every ten seconds and rejects simultaneous jobs. Large IPAs can take several minutes. Wait for the ready-to-sign message.
 
-Sign the entire output IPA, including embedded frameworks and dylibs, before installing. Use the existing app's bundle ID and compatible signing identity when updating an installation. Certificates and device-specific deploy scripts are not included.
+Output: `Build/Release/<ProjectName>-NeedsSigning.ipa`. Sign the complete IPA before sideloading. The original IPA and app identifiers are preserved. Library-only injection also needs `Source/Mod/Resources/Omega172.png` in the app bundle.
 
-## GitHub Actions
+### Build with GitHub Actions
 
-- **Build and Draft IPA Release** takes a new version tag and a direct HTTPS decrypted IPA URL. Its draft contains the IPA and dylib.
-- **Build and Draft Dylib Release** takes a new version tag. Its draft contains only the dylib.
+Use **Build and Draft IPA Release** with a version tag and decrypted IPA URL, or **Build and Draft Dylib Release** with a version tag. Both read `Project.json` and create draft releases.
 
-Both read `Project.json`, install Theos and the configured SDK, run tests and generate a changelog since the previous published release. Review the draft under Releases. The workflow version is the release tag and does not change the app's version.
-
-## Scope
-
-The starter includes the Omega172 credits popup, shown once per app launch with the logo, Dismiss button and optional GitHub link. It fades away after ten seconds. `Source/Mod/Credits.m` handles the card and packaging automatically adds `Source/Mod/Resources/Omega172.png` to the app bundle. Library-only injection also needs that PNG in the app bundle.
-
-The mod entry point is empty. No ad, currency or gameplay patches are included. Hooks and offsets must be implemented for each app.
-
-Packaging supports decrypted arm64 executables, including arm64 slices in universal binaries. Other slices remain unchanged. Injection requires existing Mach-O header padding. Insufficient padding or declared encryption causes an error rather than shifting binary sections. A cleared encryption flag alone does not prove a valid decrypted dump.
-
-Old signature folders and embedded provisioning profiles are omitted for re-signing. All other retained files are checked byte for byte. The package is unsigned and device behavior still needs testing. Apps with extensions may need additional provisioning profiles when signing.
-
-IPAs, signing credentials, Theos, build outputs and caches are excluded by `.gitignore`. Select a license in `LICENSE` before publishing.
-
-Tests:
+### Tests
 
 ```bash
 python3 -B -m unittest discover -s Source/Tests -p 'Test*.py'
